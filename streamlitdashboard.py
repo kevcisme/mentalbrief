@@ -1,8 +1,11 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pickle
 import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from textblob import TextBlob, Word
 
 with open("./treatment_rf.pkl", "rb") as pk:
     rf = pickle.load(pk)
@@ -102,7 +105,7 @@ header = st.header("mentalbrief")
 
 
 # first text input box
-main_panel_text_input = st.text_area(
+third_main_panel_text_input = st.text_area(
     'What do you do for fun?'
     )
 
@@ -110,7 +113,7 @@ second_main_panel_text_input = st.text_area(
     'What role(s) do you view yourself in the world or in your community?'
     )
 
-third_main_panel_text_input = st.text_area(
+main_panel_text_input = st.text_area(
     "Tell a bit about what's going on lately..."
     )
 
@@ -146,6 +149,9 @@ sidebar_inputs = [age_sidebar, gender_sidebar, state_sidebar, self_employed_side
 #             'Firm Size', 'Comments'])
 #     st.write(df)
 
+
+def detect_sentiment(text):
+    return TextBlob(text).sentiment.polarity
 
 def fix_columns( d, columns ):  
 
@@ -206,7 +212,7 @@ if sidebar_inputs:
     data = np.array(sidebar_inputs).reshape(1, -1)
     unfinished_df = pd.DataFrame(data, columns = ['Age', 'Gender', 'State', 'Self-Employed Status','Firm Size', 'Family History', 'Comments'])
     st.write(unfinished_df)
-    st.text("please finish the survey")
+    st.text("The 'Submit' button will appear when you finish the survey.")
 
     if all(sidebar_inputs):
         if st.button('Submit'):
@@ -217,15 +223,36 @@ if sidebar_inputs:
 
             finished_df.columns = ['Age', 'Gender', 'state', 'self_employed', 'no_employees',
        'family_history', 'comments']
+            sentiment_df = finished_df.copy()       
+            sentiment_df['sentiment'] = sentiment_df['comments'].apply(detect_sentiment)
+            if sentiment_df['sentiment'][0] > .5:
+                st.text("Through AI, I have determined most of your indicators resemble people who do not burnout. Some tips to stay healthy include...")
+            else:
+                st.text("Through AI, I have determined people in similar shoes as you have high likelihood to being stressed. You might need to take steps towards reducing burnout. Here are some tips...")
+
 
             inference_df = model_clean(finished_df)
             predicted_value = rf.predict(inference_df)[0]
 
+
             if predicted_value == 0:
-                predicted_value = "Needs Treatment"
+                if sentiment_df['sentiment'][0] > 0:
+                    aithoughts = "I am slightly confused. I generally would advise seeking treatment and outside help, but also, you seem generally positive."
+                else:
+                    aithoughts = "Furthermore, I believe you might need treatment"
             else:
-                predicted_value =  "Generally doesn't need treatment"
-            st.text(predicted_value)
+                if sentiment_df['sentiment'][0] < 0:
+                    aithoughts = "I am somewhat on the fence about where you stand. Your sentiment seems negative but your indicators in my questions seem positive. I'd recommend seeking some outside help."
+                else:
+                    aithoughts =  "Furthermore, I generally believe you don't need treatment"
+            st.text(aithoughts)
+            predictedY =[sentiment_df['sentiment'][0]] 
+            UnlabelledY=[0,1,0]
+            plt.scatter(predictedY, np.zeros_like(predictedY), 
+            c=UnlabelledY, cmap="hot_r", vmin=-2)
+            plt.yticks([])
+            plt.title("Your predicted sentiment is the green dot")
+            st.pyplot()
         else:
             st.text('Press "Submit to see results"')
 
