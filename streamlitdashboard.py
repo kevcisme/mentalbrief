@@ -7,6 +7,12 @@ from sklearn.ensemble import RandomForestClassifier
 with open("./treatment_rf.pkl", "rb") as pk:
     rf = pickle.load(pk)
 
+###############
+#  Side Panel #
+###############
+# header
+sideheader = st.sidebar.header("mentalbrief Questionnaire:")
+
 #Age sidebar
 age_sidebar = st.sidebar.text_input("Age", 28)
 
@@ -46,11 +52,71 @@ family_history_sidebar = st.sidebar.selectbox(
     ('Yes', 'No')
     )
 
-# first text input box
-main_panel_text_input = st.text_area(
-    'Tell us about how things are going...'
+# First Choice?
+first_choice_sidebar = st.sidebar.selectbox(
+    "Was law your first choice for career?",
+    ("Yes", "No")
     )
 
+
+# Years Practiced?
+years_practiced_sidebar = st.sidebar.slider(
+    "How many years have you practiced?", min_value=1, max_value=65, 
+    )
+
+# Pro Bono/Charity Work?
+pro_bono_sidebar = st.sidebar.selectbox(
+    "Do you do Pro Bono work, charity, and/or advocacy?",
+    ("Yes", "No")
+    )
+
+#How many associations?
+associations_sidebar = st.sidebar.number_input(
+    "How many associations are you part of (related to law)?",
+    min_value=0,
+    value=3
+    )
+
+#How many client interaction?
+clientinteraction_sidebar = st.sidebar.selectbox(
+    "How often do you meet with clients??",
+    ('Weekly', 'Daily', 'Monthly')
+    )
+
+
+#How many committees?
+commitees_at_work_sidebar = st.sidebar.number_input(
+    "How many committees are you on at work?",
+    min_value=0,
+    value=3
+    )
+
+
+
+###############
+#  Main Panel #
+###############
+
+# Header
+header = st.header("mentalbrief")
+
+
+# first text input box
+main_panel_text_input = st.text_area(
+    'What do you do for fun?'
+    )
+
+second_main_panel_text_input = st.text_area(
+    'What role(s) do you view yourself in the world or in your community?'
+    )
+
+third_main_panel_text_input = st.text_area(
+    "Tell a bit about what's going on lately..."
+    )
+
+fourth_main_panel_text_input = st.text_area(
+    "Please list any general stressors you have noticed in your life and highlight any stressors that have been especially prevalent?"
+    )
 
 # if main_panel_text_input:
 #     st.latex(r'''
